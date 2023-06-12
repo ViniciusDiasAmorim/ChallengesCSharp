@@ -1,5 +1,10 @@
 namespace UserInformation
 {
+    //Desafio 3:
+    //Crie uma API em C# utilizando o framework ASP.NET Core. A API deve permitir criar, ler, atualizar e excluir
+    //registros de uma entidade específica (por exemplo, "Usuário"). Certifique-se de implementar as operações 
+    //HTTP adequadas (GET, POST, PUT, DELETE) e retornar respostas adequadas em formato JSON.
+
     public class Program
     {
         public static void Main(string[] args)
@@ -26,26 +31,58 @@ namespace UserInformation
 
             app.UseAuthorization();
 
-            var summaries = new[]
+            List<Usuario> usuarios = new List<Usuario>()
             {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
+                new Usuario { Nome = "Vinicius", Id = 1, Email = "Viniragh@gmail.com", Senha = "12345678" }
+            };
+  
+            app.MapGet("/usuarios", () => 
+            {
+                return usuarios;
+            });
 
-            app.MapGet("/weatherforecast", (HttpContext httpContext) =>
+            app.MapPost("/usuarios", (Usuario usuario) => 
             {
-                var forecast = Enumerable.Range(1, 5).Select(index =>
-                    new WeatherForecast
-                    {
-                        Date = DateTime.Now.AddDays(index),
-                        TemperatureC = Random.Shared.Next(-20, 55),
-                        Summary = summaries[Random.Shared.Next(summaries.Length)]
-                    })
-                    .ToArray();
-                return forecast;
-            })
-            .WithName("GetWeatherForecast");
+                usuarios.Add(usuario);
+            });
+
+            app.MapPut("/usuarios/{id:int}", (int id, Usuario usuario) =>
+            {
+                var usuarioAtual = usuarios.Find(user => user.Id == id);
+
+                if(usuarioAtual == null)
+                {
+                    return Results.NotFound();
+                }
+
+                usuarioAtual.Nome = usuario.Nome;
+                usuarioAtual.Senha = usuario.Senha;
+                usuarioAtual.Email = usuario.Email;
+
+                return Results.Ok();
+            });
+
+            app.MapDelete("/usuario/{id:int}", (int id) =>
+            {
+                var usuario = usuarios.Find(x => x.Id == id);
+
+                if(usuario == null)
+                {
+                    return Results.NotFound();
+                };
+
+                usuarios.Remove(usuario);
+                return Results.Ok(usuario);
+            });
 
             app.Run();
+        }
+         class Usuario
+        {
+            public int Id { get; set; }
+            public string Nome { get; set; }
+            public string Email { get; set; }
+            public string Senha { get; set; }
         }
     }
 }
